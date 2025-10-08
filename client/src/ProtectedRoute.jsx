@@ -1,0 +1,9 @@
+import { Navigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+
+export default function ProtectedRoute({ children }) {
+  const { ready, isAuthed } = useAuth();
+  if (!ready) return null; // or spinner
+  if (!isAuthed) return <Navigate to="/login" replace />;
+  return children;
+}

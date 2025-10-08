@@ -19,6 +19,8 @@ export default function Navbar() {
           <NavLink className="link" to="/dashboard">{t("nav_dashboard")}</NavLink>
           <NavLink className="link" to="/readings">{t("nav_readings")}</NavLink>
           <NavLink className="link" to="/medications">Medications</NavLink>
+                    <NavLink className="link" to="/assistant">Assistant</NavLink>
+          <NavLink className="link" to="/plan">Plan</NavLink>
 
         </nav>
 

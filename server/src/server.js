@@ -11,6 +11,7 @@ import medsRouter from "./routes/meds.js";
 import medsPublic from "./routes/medsPublic.js";
 import userMeds from "./routes/userMeds.js";
 import { auth } from "./middleware/auth.js";
+import aiRouter from "./routes/ai.js";
 
 // ✅ Load .env if it exists, otherwise use defaults
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +45,7 @@ app.use("/api", medsPublic);
 app.use("/api", medsRouter); // no auth
 app.use("/api", auth, userMeds);
 app.use("/api", auth, medsRouter);
+app.use("/api", aiRouter);
 
 // =============================================
 // Database + Seed + Server Start
@@ -52,6 +54,7 @@ async function start() {
   await connectDB();
   await sequelize.sync(); // { alter: true } while iterating
   await seedMedicationCatalog();
+console.log("OPENAI key?", !!process.env.OPENAI_API_KEY);
 
   const port = process.env.PORT;
   app.listen(port, () =>

@@ -15,6 +15,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(email, password);
+      
       nav("/dashboard");
     } catch {
       setErr("Login failed");

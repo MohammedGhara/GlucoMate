@@ -1,38 +1,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { api } from "./api";
+import { api, setOnUnauthorized } from "./api";
 
-const AuthCtx = createContext();
+const AuthCtx = createContext(null);
+export const useAuth = () => useContext(AuthCtx);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
 
-  async function fetchMe() {
-    const token = localStorage.getItem("token");
-    if (!token) return setReady(true);
-    try {
-      const { data } = await api.get("/auth/me");
-      setUser(data.user);
-    } catch (e) {
-      localStorage.removeItem("token");
-      setUser(null);
-    } finally {
-      setReady(true);
-    }
-  }
-
-  useEffect(() => { fetchMe(); }, []);
-
   async function login(email, password) {
     const { data } = await api.post("/auth/login", { email, password });
     localStorage.setItem("token", data.token);
-    setUser(data.user);
-  }
-
-  async function register(name, email, password) {
-    const { data } = await api.post("/auth/register", { name, email, password });
-    localStorage.setItem("token", data.token);
-    setUser(data.user);
+    setUser(data.user || { email });
+    return data;
   }
 
   function logout() {
@@ -40,7 +20,31 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  return <AuthCtx.Provider value={{ user, ready, login, register, logout }}>{children}</AuthCtx.Provider>;
-}
+  // restore session on first load
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setReady(true);
+      return;
+    }
+    // try to fetch me; don't hard-logout if it fails (network, etc.)
+    api.get("/auth/me")
+      .then(({ data }) => setUser(data))
+      .catch(() => {
+        // token might be invalid → logout politely
+        logout();
+      })
+      .finally(() => setReady(true));
+  }, []);
 
-export const useAuth = () => useContext(AuthCtx);
+  // hook global 401 handler
+  useEffect(() => {
+    setOnUnauthorized(() => () => {
+      // only logout if token exists (api.js checks that) to avoid accidental sign-outs
+      logout();
+    });
+  }, []);
+
+  const value = { user, ready, login, logout, isAuthed: !!user };
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
+}
