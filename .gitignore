@@ -1,0 +1,43 @@
+# Node / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+.cache/
+.tmp/
+.vite/
+.next/
+.svelte-kit/
+
+# Env & secrets
+.env
+.env.*
+*.local
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Tests & coverage
+coverage/
+.nyc_output/
+
+# SQLite & data
+*.sqlite
+*.db
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+
+# Logs
+logs/
+*.log
+
+# Swagger bundles
+*.bundle.js
+*.bundle.js.map
