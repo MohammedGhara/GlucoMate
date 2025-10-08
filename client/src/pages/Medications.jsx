@@ -5,18 +5,17 @@ import { api } from "../api";
 function to12h(hhmm = "08:00") {
   const [H, M] = hhmm.split(":").map(Number);
   const am = H < 12;
-  const h12 = ((H + 11) % 12) + 1; // 0->12, 13->1
+  const h12 = ((H + 11) % 12) + 1;
   return { h: String(h12).padStart(2, "0"), m: String(M).padStart(2, "0"), ampm: am ? "AM" : "PM" };
 }
 function to24h(h, m, ampm) {
   let H = Number(h);
-  if (ampm === "AM") H = H % 12;      // 12 AM -> 0
-  else H = (H % 12) + 12;             // 12 PM -> 12; 1 PM -> 13
+  if (ampm === "AM") H = H % 12; else H = (H % 12) + 12;
   return `${String(H).padStart(2, "0")}:${String(Number(m)).padStart(2, "0")}`;
 }
 function normalizeTimes(arr = []) {
   const uniq = Array.from(new Set(arr.filter(Boolean)));
-  return uniq.sort(); // e.g., ["06:00","08:00","20:30"]
+  return uniq.sort();
 }
 
 // ---------- inline time picker ----------
@@ -79,23 +78,64 @@ function TimeItem({ value, onChange, onRemove }) {
   );
 }
 
+// debounce hook
+function useDebounce(value, delay = 300) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return v;
+}
+
 export default function Medications() {
   const [q, setQ] = useState("");
+  const debouncedQ = useDebounce(q, 300);
+
   const [catalog, setCatalog] = useState([]);
   const [mine, setMine] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 👇 these were missing
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState("");
+
   async function loadMine() {
     setLoading(true);
-    const { data } = await api.get("/user-meds");
-    setMine(data);
-    setLoading(false);
+    try {
+      const { data } = await api.get("/user-meds");
+      setMine(data);
+    } finally {
+      setLoading(false);
+    }
   }
-  async function searchCatalog() {
-    const { data } = await api.get("/medications", { params: { q } });
-    setCatalog(data);
-  }
-  useEffect(() => { loadMine(); searchCatalog(); }, []);
+
+  // live search
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const run = async () => {
+      setSearching(true);
+      setError("");
+      try {
+        const { data } = await api.get("/medications", {
+          params: { q: debouncedQ, limit: 50, offset: 0 },
+          signal: ctrl.signal,
+        });
+        setCatalog(data);
+      } catch (e) {
+        if (e.name !== "CanceledError" && e.name !== "AbortError") {
+          setError(e?.response?.data?.msg || e.message || "Search failed");
+        }
+      } finally {
+        setSearching(false);
+      }
+    };
+    run();
+    return () => ctrl.abort();
+  }, [debouncedQ]);
+
+  // load user meds once
+  useEffect(() => { loadMine(); }, []);
 
   async function add(med) {
     const dose = prompt(`Dose for ${med.generic_name} (e.g. 500 mg / 10 units)`) || "";
@@ -132,22 +172,43 @@ export default function Medications() {
       {/* Search catalog */}
       <section className="card">
         <h3 className="card-title">Find medications</h3>
-        <div style={{display:"flex", gap:10}}>
-          <input className="input" placeholder="Search generic/brand/class…" value={q} onChange={e=>setQ(e.target.value)} />
-          <button className="btn" onClick={searchCatalog}>Search</button>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <input
+            className="input"
+            placeholder="Search generic/brand/class…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          {q && <button className="btn" onClick={() => setQ("")} title="Clear">✕</button>}
+          {searching && <span className="muted">Searching…</span>}
         </div>
-        <div className="cards" style={{paddingTop:16}}>
-          {catalog.map(m=>(
-            <div className="card" key={m.id}>
-              <div className="icon">💊</div>
-              <h3>{m.generic_name}{m.brand_name ? ` • ${m.brand_name}` : ""}</h3>
-              <p className="muted">{m.form} • {m.strength} • {m.class}</p>
-              {m.notes && <p className="muted" style={{marginTop:6}}>{m.notes}</p>}
-              <div style={{marginTop:10}}>
-                <button className="btn primary" onClick={()=>add(m)}>Add</button>
+
+        {error && (
+          <div className="card" style={{ borderColor: "#f87171", marginTop: 8 }}>
+            {error}
+          </div>
+        )}
+
+        <div className="cards" style={{ paddingTop: 16 }}>
+          {catalog.length === 0 && !searching ? (
+            <p className="muted">No results.</p>
+          ) : (
+            catalog.map((m) => (
+              <div className="card" key={m.id}>
+                <div className="icon">💊</div>
+                <h3>
+                  {m.generic_name}{m.brand_name ? ` • ${m.brand_name}` : ""}
+                </h3>
+                <p className="muted">
+                  {m.form} • {m.strength} • {m.class}
+                </p>
+                {m.notes && <p className="muted" style={{ marginTop: 6 }}>{m.notes}</p>}
+                <div style={{ marginTop: 10 }}>
+                  <button className="btn primary" onClick={() => add(m)}>Add</button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
