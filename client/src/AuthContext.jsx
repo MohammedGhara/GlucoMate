@@ -3,7 +3,7 @@ import { api, setOnUnauthorized } from "./api";
 
 const AuthCtx = createContext(null);
 export const useAuth = () => useContext(AuthCtx);
-
+ 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
@@ -19,7 +19,12 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setUser(null);
   }
-
+ async function register(name, email, password) {
+    const { data } = await api.post("/auth/register", { name, email, password });
+    localStorage.setItem("token", data.token);
+    setUser(data.user || { email });
+    return data;
+  }
   // restore session on first load
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -44,7 +49,7 @@ export function AuthProvider({ children }) {
       logout();
     });
   }, []);
+  const value = { user, ready, login, logout, register, isAuthed: !!user };
 
-  const value = { user, ready, login, logout, isAuthed: !!user };
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
