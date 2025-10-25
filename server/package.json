@@ -17,7 +17,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.7",
+    "nodemailer": "^7.0.9",
     "openai": "^6.2.0",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"

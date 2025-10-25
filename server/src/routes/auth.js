@@ -1,7 +1,10 @@
+// server/src/routes/auth.js
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User.js";   // <-- Sequelize named export
+import { User } from "../models/User.js";
+import { auth } from "../middleware/auth.js";
+
 const r = Router();
 
 // POST /api/auth/register
@@ -13,15 +16,21 @@ r.post("/register", async (req, res) => {
     }
 
     const exists = await User.findOne({ where: { email } });
-    if (exists) {
-      return res.status(409).json({ msg: "Email already used" });
-    }
+    if (exists) return res.status(409).json({ msg: "Email already used" });
 
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hash, role });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || process.env.SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
   } catch (e) {
     console.error("Register error:", e);
     res.status(500).json({ msg: e.message || "Register error" });
@@ -38,12 +47,26 @@ r.post("/login", async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ msg: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || process.env.SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
   } catch (e) {
     console.error("Login error:", e);
     res.status(500).json({ msg: e.message || "Login error" });
   }
+});
+
+// GET /api/auth/me  (returns current user if token is valid)
+r.get("/me", auth, async (req, res) => {
+  const u = req.user;
+  res.json({ id: u.id, name: u.name, email: u.email, role: u.role });
 });
 
 export default r;

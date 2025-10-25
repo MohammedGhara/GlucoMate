@@ -49,7 +49,7 @@ export default function Readings() {
   async function add(e) {
     e.preventDefault();
     const g = Number(form.glucose);
-    if (Number.isNaN(g) || g <= 20 || g >= 600) { // quick sanity
+    if (Number.isNaN(g) || g <= 20 || g >= 600) {
       return showToast("error", "Glucose must be between 20–600 mg/dL");
     }
     try {
@@ -58,8 +58,10 @@ export default function Readings() {
         glucose: g,
         a1c: form.a1c ? Number(form.a1c) : null,
         weight: form.weight ? Number(form.weight) : null,
+        // 🔁 CHANGED: systolic remains numeric (insulin units),
+        // diastolic is now a string (insulin type) — no Number() coercion
         systolic: form.systolic ? Number(form.systolic) : null,
-        diastolic: form.diastolic ? Number(form.diastolic) : null,
+        diastolic: form.diastolic || null,
         takenAt: local.toISOString(),
       });
       setForm({ glucose: "", a1c: "", weight: "", systolic: "", diastolic: "", takenAt: toLocalInputValue() });
@@ -149,14 +151,34 @@ export default function Readings() {
               <label>⚖️ {t("weight")}</label>
               <input className="input" inputMode="decimal" value={form.weight} onChange={e=>change("weight", e.target.value)} />
             </div>
+
+            {/* 🔁 CHANGED FIELD 1: Systolic -> Insulin (units) */}
             <div className="form-item">
-              <label>🫀 {t("systolic")}</label>
-              <input className="input" inputMode="numeric" value={form.systolic} onChange={e=>change("systolic", e.target.value)} />
+              <label>💉 Insulin (units)</label>
+              <input
+                className="input"
+                inputMode="numeric"
+                value={form.systolic}
+                onChange={e=>change("systolic", e.target.value)}
+                placeholder="e.g. 6"
+              />
             </div>
+
+            {/* 🔁 CHANGED FIELD 2: Diastolic -> Insulin type */}
             <div className="form-item">
-              <label>🫀 {t("diastolic")}</label>
-              <input className="input" inputMode="numeric" value={form.diastolic} onChange={e=>change("diastolic", e.target.value)} />
+              <label>💉 Insulin type</label>
+              <select
+                className="input"
+                value={form.diastolic}
+                onChange={e=>change("diastolic", e.target.value)}
+              >
+                <option value="">— choose —</option>
+                <option value="Rapid">Rapid</option>
+                <option value="Basal">Basal</option>
+                <option value="Mixed">Mixed</option>
+              </select>
             </div>
+
             <div className="form-item">
               <label>🕒 Time</label>
               <input className="input" type="datetime-local" value={form.takenAt} onChange={e=>change("takenAt", e.target.value)} />
@@ -179,7 +201,6 @@ export default function Readings() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* Target band 70–180 */}
                   <ReferenceArea y1={70} y2={180} />
                   <XAxis dataKey="x" />
                   <YAxis />
@@ -193,7 +214,7 @@ export default function Readings() {
         </div>
       </section>
 
-      {/* table */}
+      {/* table (unchanged) */}
       <section className="card" style={{marginTop:16}}>
         <h3 className="card-title">Latest readings</h3>
         <div className="table-wrap">

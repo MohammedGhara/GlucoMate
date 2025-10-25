@@ -1,9 +1,10 @@
+// client/src/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { api, setOnUnauthorized } from "./api";
 
 const AuthCtx = createContext(null);
 export const useAuth = () => useContext(AuthCtx);
- 
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
@@ -19,37 +20,27 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setUser(null);
   }
- async function register(name, email, password) {
+
+  async function register(name, email, password) {
     const { data } = await api.post("/auth/register", { name, email, password });
     localStorage.setItem("token", data.token);
     setUser(data.user || { email });
     return data;
   }
-  // restore session on first load
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      setReady(true);
-      return;
-    }
-    // try to fetch me; don't hard-logout if it fails (network, etc.)
+    if (!token) { setReady(true); return; }
     api.get("/auth/me")
       .then(({ data }) => setUser(data))
-      .catch(() => {
-        // token might be invalid → logout politely
-        logout();
-      })
+      .catch(() => logout())
       .finally(() => setReady(true));
   }, []);
 
-  // hook global 401 handler
   useEffect(() => {
-    setOnUnauthorized(() => () => {
-      // only logout if token exists (api.js checks that) to avoid accidental sign-outs
-      logout();
-    });
+    setOnUnauthorized(() => () => logout());
   }, []);
-  const value = { user, ready, login, logout, register, isAuthed: !!user };
 
+  const value = { user, ready, login, logout, register, isAuthed: !!user };
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

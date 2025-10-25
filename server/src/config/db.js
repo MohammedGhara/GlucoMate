@@ -62,6 +62,16 @@ CREATE TABLE IF NOT EXISTS email_reminder_log (
   sent_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_med_id, sent_date, time_24h)
 );
+CREATE TABLE IF NOT EXISTS glucose_alert_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id   INTEGER NOT NULL,
+  glucose   REAL    NOT NULL,
+  kind      TEXT    NOT NULL,          -- 'high' | 'low'
+  reading_at DATETIME,
+  sent_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_gal_user ON glucose_alert_log(user_id, sent_at);
+
 
 CREATE INDEX IF NOT EXISTS idx_rem_log_daily ON email_reminder_log(sent_date, time_24h);
 CREATE INDEX IF NOT EXISTS idx_um_user ON user_medications(user_id);
