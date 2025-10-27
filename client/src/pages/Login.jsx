@@ -1,40 +1,77 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
-import { useNavigate } from "react-router-dom";
 import { useI18n } from "../i18n";
+import AuthLayout from "../auth/AuthLayout";
+import PasswordInput from "../auth/PasswordInput";
+import "../auth/auth.css";
 
 export default function Login() {
   const { t } = useI18n();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
   const nav = useNavigate();
   const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr]   = useState("");
+  const [ok, setOk]     = useState("");
+  const [busy, setBusy] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
+    setErr(""); setOk(""); setBusy(true);
     try {
-      await login(email, password);
-      
-      nav("/dashboard");
-    } catch {
-      setErr("Login failed");
+      await login(email.trim(), password);
+      setOk(t("welcome_back") || "Welcome back!");
+      // tiny delay so the success state is visible
+      setTimeout(()=>nav("/dashboard"), 400);
+    } catch (e) {
+      setErr(e?.response?.data?.msg || "Login failed");
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <main className="container" style={{padding:"40px 0"}}>
-      <h2>{t("login")}</h2>
-      {err && <div className="card" style={{borderColor:"#f87171"}}>{err}</div>}
-      <form onSubmit={onSubmit} className="card" style={{maxWidth:500}}>
-        <label>{t("email")}<br/>
-          <input value={email} onChange={e=>setEmail(e.target.value)} required style={{width:"100%"}}/>
-        </label><br/><br/>
-        <label>{t("password")}<br/>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required style={{width:"100%"}}/>
-        </label><br/><br/>
-        <button className="btn primary">{t("submit")}</button>
+    <AuthLayout
+      title={t("login") || "Login"}
+      subtitle={t("login_sub") || "Access your dashboard"}
+    >
+      {err && <div className="err" role="alert">{err}</div>}
+      {ok  && <div className="ok">{ok}</div>}
+
+      <form className="auth-form" onSubmit={onSubmit}>
+        <div className="f-row">
+          <label className="label" htmlFor="email">{t("email") || "Email"}</label>
+          <input
+            id="email"
+            className="input"
+            type="email"
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+          />
+        </div>
+
+        <div className="f-row">
+          <label className="label" htmlFor="password">{t("password") || "Password"}</label>
+          <PasswordInput
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+          />
+         
+        </div>
+
+        <button className="btn" disabled={busy}>
+          {busy ? (t("loading") || "Loading…") : (t("submit") || "Sign in")}
+        </button>
       </form>
-    </main>
+
+      <p className="helper">
+        {t("No Account?") || "No account?"}{" "}
+        <Link className="link" to="/register">{t("signup") || "Create one"}</Link>
+      </p>
+    </AuthLayout>
   );
 }

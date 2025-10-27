@@ -1,0 +1,154 @@
+/* ---- Auth shared styles (import in both pages) ---- */
+:root{
+  --bg1:#0B0F19;        /* deep navy */
+  --bg2:#111827;        /* slate */
+  --card: rgba(17,24,39,.6);
+  --card-border: rgba(255,255,255,.08);
+  --text:#E6E9F5;
+  --muted:#A8B2D1;
+  --primary:#7C8CFF;
+  --primary-600:#6a7aff;
+  --danger:#f87171;
+  --ok:#34d399;
+  --shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.auth-wrap{
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(60rem 60rem at 10% -10%, #1f2a44 0%, transparent 60%),
+    radial-gradient(60rem 60rem at 120% 10%, #0f172a 0%, transparent 55%),
+    linear-gradient(135deg,var(--bg1),var(--bg2));
+  color:var(--text);
+}
+
+.auth-card{
+  width: min(92vw, 460px);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+  animation: pop .35s ease;
+}
+
+@keyframes pop{
+  from{ transform: translateY(10px); opacity:0; }
+  to  { transform: translateY(0);    opacity:1; }
+}
+
+.auth-header{
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+}
+.logo-dot{
+  width:36px; height:36px; border-radius:12px;
+  background: radial-gradient(circle at 30% 30%, #9aa7ff, var(--primary));
+  box-shadow: 0 8px 24px rgba(124,140,255,.45);
+}
+
+.auth-title{ font-size:clamp(1.2rem, 2.2vw, 1.6rem); font-weight:700; }
+.auth-sub{ color:var(--muted); font-size:.95rem; margin-top:2px; }
+
+.auth-form{ margin-top:18px; display:grid; gap:14px; }
+
+.f-row{ display:grid; gap:8px; }
+.label{ font-size:.92rem; color:var(--muted); }
+
+.input{
+  width:100%; padding:14px 14px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px; outline:none; color:var(--text);
+  transition:.15s border, .15s background;
+}
+.input:focus{
+  border-color: var(--primary);
+  background: rgba(255,255,255,.09);
+  box-shadow: 0 0 0 4px rgba(124,140,255,.15);
+}
+
+.input-wrap{
+  position:relative; display:flex; align-items:center;
+}
+.input-right{
+  position:absolute; right:10px; display:flex; gap:6px; align-items:center;
+}
+.icon-btn{
+  border:0; background:transparent; color:var(--muted);
+  cursor:pointer; padding:6px; border-radius:8px;
+}
+.icon-btn:hover{ color:var(--text); background:rgba(255,255,255,.06); }
+
+.row-split{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  margin-top:4px;
+}
+.link{
+  color:var(--primary); text-decoration:none; font-size:.92rem;
+}
+.link:hover{ text-decoration:underline; }
+
+.btn{
+  width:100%; padding:14px 16px; border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, var(--primary), var(--primary-600));
+  color:white; font-weight:700; cursor:pointer;
+  transition: .15s transform, .15s filter;
+}
+.btn:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+.btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+
+.helper{ text-align:center; color:var(--muted); margin-top:12px; font-size:.95rem; }
+
+.err{
+  background: rgba(248,113,113,.12);
+  border:1px solid rgba(248,113,113,.35);
+  color:#fecaca; padding:10px 12px; border-radius:12px;
+}
+
+.ok{
+  background: rgba(52,211,153,.12);
+  border:1px solid rgba(52,211,153,.35);
+  color:#bbf7d0; padding:10px 12px; border-radius:12px;
+}
+/* === Scoped overrides so global .btn/.link can't override === */
+.auth-wrap .btn{
+  width:100%;
+  padding:14px 16px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, var(--primary), var(--primary-600));
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+  transition:.15s transform, .15s filter;
+  text-decoration:none;            /* for <Link class="btn"> */
+  display:inline-flex;             /* consistent across tags */
+  align-items:center;
+  justify-content:center;
+}
+.auth-wrap .btn:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+.auth-wrap .btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+
+/* If you ever use <Link class="btn primary"> */
+.auth-wrap .btn.primary{
+  background: linear-gradient(180deg, var(--primary), var(--primary-600));
+  color:#fff;
+}
+
+/* Make sure helper/link keep your styling */
+.auth-wrap .helper{
+  text-align:center;
+  color:var(--muted);
+  margin-top:12px;
+  font-size:.95rem;
+}
+.auth-wrap .link{
+  color:var(--primary);
+  text-decoration:none;
+  font-size:.92rem;
+}
+.auth-wrap .link:hover{ text-decoration:underline; }

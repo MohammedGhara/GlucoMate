@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 const OK_MIN = 70;
-const OK_MAX = 180;
+const OK_MAX = 120;
 
 function fmt(iso, locale) {
   if (!iso) return "—";

@@ -15,23 +15,28 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/register" element={<Register/>} />
-        <Route path="/medications" element={
-          <ProtectedRoute><Medications/></ProtectedRoute>
-        } />
-        <Route path="/plan" element={<Plan />} />
-         <Route path="/assistant" element={<Assistant />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
+        {/* Protected pages */}
         <Route path="/dashboard" element={
-          <ProtectedRoute><Dashboard/></ProtectedRoute>
+          <ProtectedRoute><Dashboard /></ProtectedRoute>
         } />
         <Route path="/readings" element={
-          <ProtectedRoute><Readings/></ProtectedRoute>
+          <ProtectedRoute><Readings /></ProtectedRoute>
+        } />
+        <Route path="/medications" element={
+          <ProtectedRoute><Medications /></ProtectedRoute>
+        } />
+        <Route path="/plan" element={
+          <ProtectedRoute><Plan /></ProtectedRoute>
+        } />
+        <Route path="/assistant" element={
+          <ProtectedRoute><Assistant /></ProtectedRoute>
         } />
 
-        <Route path="*" element={<Home/>} />
+        <Route path="*" element={<Home />} />
       </Routes>
     </>
   );
