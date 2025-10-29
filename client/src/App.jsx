@@ -9,6 +9,7 @@ import Readings from "./pages/Readings";
 import Medications from "./pages/Medications.jsx";
 import Plan from "./pages/Plan.jsx";
 import Assistant from "./pages/Assistant.jsx";
+import AdminLogs from "./pages/AdminLogs.jsx";
 
 export default function App() {
   return (
@@ -35,6 +36,10 @@ export default function App() {
         <Route path="/assistant" element={
           <ProtectedRoute><Assistant /></ProtectedRoute>
         } />
+        <Route
+          path="/admin/logs"
+          element={<ProtectedRoute roles={["admin"]}><AdminLogs/></ProtectedRoute>}
+        />
 
         <Route path="*" element={<Home />} />
       </Routes>

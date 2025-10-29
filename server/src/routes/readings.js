@@ -3,7 +3,8 @@ import { Router } from "express";
 import { Reading } from "../models/Reading.js";
 import { User } from "../models/User.js";            // 🔹 add this
 import { notifyOnGlucose } from "../services/alerts.js";
-
+import { db } from "../config/db.js";
+import { logAudit } from "../utils/audit.js";
 const router = Router();
 
 // Require an attached user (maybeAttachUser ran earlier)
@@ -50,4 +51,61 @@ router.post("/", requireUser, async (req, res) => {
   res.json(item);
 });
 
+// CREATE
+router.post("/readings", async (req, res) => {
+  const { glucose, a1c, weight, systolic, diastolic, takenAt } = req.body;
+  const info = db.prepare(`INSERT INTO readings
+      (user_id, glucose, a1c, weight, systolic, diastolic, takenAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`)
+    .run(req.user.id, glucose, a1c, weight, systolic, diastolic, takenAt);
+  await logAudit(req, {
+    action: "reading.create",
+    entity_type: "Reading",
+    entity_id: String(info.lastInsertRowid),
+    new_value: { glucose, a1c, weight, systolic, diastolic, takenAt }
+  });
+  res.json({ id: info.lastInsertRowid });
+});
+
+// UPDATE
+router.patch("/readings/:id", async (req, res) => {
+  const id = req.params.id;
+  const oldRow = db.prepare("SELECT * FROM readings WHERE id=? AND user_id=?")
+                   .get(id, req.user.id);
+  if (!oldRow) return res.status(404).json({ msg: "Not found" });
+
+  const patch = req.body;  // trust only allowed fields in real code
+  const next = { ...oldRow, ...patch };
+  db.prepare(`UPDATE readings SET glucose=?, a1c=?, weight=?, systolic=?, diastolic=?, takenAt=? WHERE id=? AND user_id=?`)
+    .run(next.glucose, next.a1c, next.weight, next.systolic, next.diastolic, next.takenAt, id, req.user.id);
+
+  await logAudit(req, {
+    action: "reading.update",
+    entity_type: "Reading",
+    entity_id: id,
+    old_value: oldRow,
+    new_value: patch
+  });
+
+  res.json({ ok: true });
+});
+
+// DELETE
+router.delete("/readings/:id", async (req, res) => {
+  const id = req.params.id;
+  const oldRow = db.prepare("SELECT * FROM readings WHERE id=? AND user_id=?")
+                   .get(id, req.user.id);
+  if (!oldRow) return res.status(404).json({ msg: "Not found" });
+
+  db.prepare("DELETE FROM readings WHERE id=? AND user_id=?").run(id, req.user.id);
+
+  await logAudit(req, {
+    action: "reading.delete",
+    entity_type: "Reading",
+    entity_id: id,
+    old_value: oldRow
+  });
+
+  res.json({ ok: true });
+});
 export default router;

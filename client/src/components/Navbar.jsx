@@ -21,6 +21,9 @@ export default function Navbar() {
           <NavLink className="link" to="/medications">Medications</NavLink>
                     <NavLink className="link" to="/assistant">Assistant</NavLink>
           <NavLink className="link" to="/plan">Plan</NavLink>
+          {user?.role === "admin" && (
+            <NavLink className="link" to="/admin/logs">Admin Logs</NavLink>
+          )}
 
         </nav>
 

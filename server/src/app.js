@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import testInventoryRouter from "./routes/__test_inventory__.js"; // ⬅ add this line
 
-
+import adminLogsRouter from "./routes/adminLogs.js";
 import authRouter from "./routes/auth.js";
 import { auth, maybeAttachUser } from "./middleware/auth.js";
 import medsRouter from "./routes/meds.js";
@@ -15,7 +15,7 @@ import userMeds from "./routes/userMeds.js";
 import aiRouter from "./routes/ai.js";
 import readingsRouter from "./routes/readings.js";
 import testEmailRoutes from "./routes/testEmail.js";
-
+import { requireAdmin } from "./middleware/roles.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
@@ -56,5 +56,5 @@ app.use("/api", aiRouter);
 // test email (require auth)
 app.use("/api", auth, testEmailRoutes);
 
-
+ app.use("/api/admin", auth, requireAdmin, adminLogsRouter);
 export default app;
