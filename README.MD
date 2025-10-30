@@ -67,31 +67,28 @@ If you prefer a single command runner, install something like `concurrently` and
 ## Environment variables
 
 Create **`server/.env`**:
+# 🧠 DATABASE
+DB_HOST=mongodb+srv://sajed:GREENPOINTS@cluster0.vl6ncjk.mongodb.net/cluster0?retryWrites=true&w=majority
+DB_USER=sajed
+DB_PASS=GREENPOINTS
+SECRET=Green-Points
+# 🕒 TIMEZONE
+TZ=Asia/Jerusalem
+# 📧 EMAIL (for sending alerts)
+EMAIL=greenpoints218@gmail.com
+EMAIL_PASSWORD=zniafmpygdrbewrx
+EMAIL_FROM="GlucoMate Alerts <greenpoints218@gmail.com>"
+# 🧩 APP SETTINGS
+APP_NAME=GlucoMate
+APP_URL=http://localhost:5173
+# 🔐 AUTH
+JWT_SECRET=Green-Points
+ADMIN_EMAIL=admin@gmail.com
+ADMIN_PASSWORD=123
+ADMIN_NAME=Admin
 
-```ini
-# Server
-PORT=5000
-
-# JWT
-JWT_SECRET=replace_with_a_long_random_string
-
-# SMTP (optional, for email reminders)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=0            # 0 = STARTTLS (port 587), 1 = SSL (port 465)
-SMTP_USER=you@gmail.com  # sender account
-SMTP_PASS=your_16_char_google_app_password
-SMTP_FROM=you@gmail.com  # or "Your App <you@gmail.com>"
-```
-
-> **Gmail note**: You must enable 2‑Step Verification on the account and create an **App Password**. Regular passwords are rejected with `535 5.7.8`.
-
-Optional **`client/.env`** (Vite reads `VITE_*`):
-
-```ini
-VITE_API_URL=http://localhost:5000
-```
-
+# 🤖 OPENAI (optional)
+OPENAI_API_KEY=sk-(Ihave use it into the Submmision in the model you can just replace it from there!)
 ---
 
 ## Running the servers
